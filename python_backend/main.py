@@ -15,7 +15,7 @@ app = FastAPI()
 # Configure CORS to allow requests from the Next.js frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Next.js dev server
+    allow_origins=["http://localhost:3000"],  # Next.js dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,12 +28,21 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 # Function to extract text using OCR from images
 def extract_text_from_image(image_path):
     try:
-        img = cv2.imread(image_path)
+        # Try using PIL first, which handles more image formats
+        img = Image.open(image_path)
         text = pytesseract.image_to_string(img)
         return text
     except Exception as e:
-        print(f"Error processing image {image_path}: {e}")
-        return None
+        try:
+            # Fallback to OpenCV
+            img = cv2.imread(image_path)
+            if img is None:
+                return f"Error: Could not read image file {os.path.basename(image_path)}"
+            text = pytesseract.image_to_string(img)
+            return text
+        except Exception as e2:
+            print(f"Error processing image {image_path}: {e2}")
+            return f"Error: Failed to extract text from image: {str(e2)}"
 
 # Function to extract text from PDF
 def extract_text_from_pdf(pdf_path):
@@ -45,7 +54,7 @@ def extract_text_from_pdf(pdf_path):
         return all_text
     except Exception as e:
         print(f"Error processing PDF {pdf_path}: {e}")
-        return None
+        return f"Error: Failed to extract text from PDF: {str(e)}"
 
 # Function to process files (PDFs and images)
 def process_files(file_paths):
@@ -139,9 +148,18 @@ async def process_documents(files: List[UploadFile] = File(...)):
             if os.path.exists(file_path):
                 os.remove(file_path)
         
+        # Log the full error for debugging
+        import traceback
+        print(f"Error processing documents: {str(e)}")
+        print(traceback.format_exc())
+        
         raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
 
 @app.get("/")
 async def root():
     return {"message": "Document Classification API is running"}
+
+@app.get("/test")
+async def test():
+    return {"status": "ok", "message": "Python backend is running correctly"}
 

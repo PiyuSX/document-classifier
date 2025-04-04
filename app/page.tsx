@@ -53,7 +53,7 @@ export default function Home() {
 
       try {
         // Call the Python backend API
-        const response = await fetch("http://localhost:8000/process-documents", {
+        const response = await fetch("/api/process-documents", {
           method: "POST",
           body: formData,
           signal: controller.signal,
@@ -133,9 +133,7 @@ export default function Home() {
           <p className="text-gray-500 mt-2">Upload documents to classify and extract text using OCR</p>
         </div>
 
-    
 
-    
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">Upload Documents</TabsTrigger>
@@ -227,22 +225,23 @@ export default function Home() {
                       <div key={index} className="border rounded-lg overflow-hidden">
                         <div className="bg-gray-100 p-4 flex flex-wrap justify-between items-center">
                           <div className="flex items-center mb-2 md:mb-0">
-                            {getFileIcon(result.file_name)}
-                            <span className="ml-2 font-medium">{result.file_name}</span>
+                            {getFileIcon(result.file_name || result.fileName)}
+                            <span className="ml-2 font-medium">{result.file_name || result.fileName}</span>
                           </div>
                           <Badge
                             variant={
-                              result.document_type !== "Unknown Document Type" && result.document_type !== "Error"
+                              (result.document_type || result.documentType) !== "Unknown Document Type" &&
+                              (result.document_type || result.documentType) !== "Error"
                                 ? "default"
                                 : "outline"
                             }
                           >
-                            {result.document_type}
+                            {result.document_type || result.documentType}
                           </Badge>
                         </div>
                         <div className="p-4">
                           <h4 className="text-sm font-medium mb-2">Extracted Text:</h4>
-                          <TextDisplay text={result.extracted_text} />
+                          <TextDisplay text={result.extracted_text || result.extractedText} />
                         </div>
                       </div>
                     ))}
