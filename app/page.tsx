@@ -133,8 +133,9 @@ export default function Home() {
           <p className="text-gray-500 mt-2">Upload documents to classify and extract text using OCR</p>
         </div>
 
-      
+    
 
+    
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">Upload Documents</TabsTrigger>
